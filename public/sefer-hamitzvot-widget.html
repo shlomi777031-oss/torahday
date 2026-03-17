@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ווידג'ט ספר המצוות היומי</title>
+    <style>
+        :root {
+            --primary-color: #1a365d;
+            --secondary-color: #2b6cb0;
+            --bg-color: #f7fafc;
+            --text-color: #2d3748;
+            --border-color: #e2e8f0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #edf2f7;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .mitzvah-widget {
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            max-width: 500px;
+            width: 100%;
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+        }
+
+        .widget-header {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 16px 20px;
+            text-align: center;
+            border-bottom: 4px solid var(--secondary-color);
+        }
+
+        .widget-header h2 {
+            margin: 0;
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+
+        .widget-header .date {
+            font-size: 0.875rem;
+            opacity: 0.9;
+            margin-top: 4px;
+        }
+
+        .widget-content {
+            padding: 20px;
+            color: var(--text-color);
+            line-height: 1.6;
+        }
+
+        .mitzvah-title {
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: var(--primary-color);
+            margin-bottom: 12px;
+            border-bottom: 2px solid var(--bg-color);
+            padding-bottom: 8px;
+        }
+
+        .mitzvah-description {
+            font-size: 1rem;
+            margin-bottom: 20px;
+        }
+
+        /* Clean up Chabad's HTML inside the description */
+        .mitzvah-description p {
+            margin-top: 0;
+        }
+        
+        .mitzvah-description a {
+            color: var(--secondary-color);
+            text-decoration: none;
+        }
+
+        .mitzvah-description a:hover {
+            text-decoration: underline;
+        }
+
+        .widget-footer {
+            background-color: var(--bg-color);
+            padding: 12px 20px;
+            text-align: center;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .read-more-btn {
+            display: inline-block;
+            background-color: var(--secondary-color);
+            color: white;
+            text-decoration: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-weight: 500;
+            transition: background-color 0.2s;
+            font-size: 0.9rem;
+        }
+
+        .read-more-btn:hover {
+            background-color: var(--primary-color);
+        }
+
+        .loading, .error {
+            text-align: center;
+            padding: 40px 20px;
+            color: #718096;
+        }
+
+        .error {
+            color: #e53e3e;
+        }
+
+        /* Spinner */
+        .spinner {
+            border: 3px solid rgba(0,0,0,0.1);
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            border-left-color: var(--secondary-color);
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+
+<meta name="NetsparkQuiltingResult" total-length="10832" removed="0" rules-found="w3509,w2656,w15722,w19266,w10008,w10042,w19703,w27087,w19740,w73,w8712" />
+</head>
+<body>
+
+    <!-- Widget Container -->
+    <div class="mitzvah-widget" id="mitzvahWidget">
+        <div class="widget-header">
+            <h2>ספר המצוות היומי (רמב"ם)</h2>
+            <div class="date" id="widgetDate">טוען תאריך...</div>
+        </div>
+        
+        <div class="widget-content" id="widgetContent">
+            <div class="loading">
+                <div class="spinner"></div>
+                טוען את השיעור היומי...
+            </div>
+        </div>
+        
+        <div class="widget-footer" id="widgetFooter" style="display: none;">
+            <a href="#" target="_blank" class="read-more-btn" id="readMoreLink">לשיעור המלא באתר חב"ד</a>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const rssUrl = 'https://www.chabad.org/rss/daily-study/sefer-hamitzvot.xml';
+            
+            // מערך של פרוקסי כדי להתגבר על חסימות CORS
+            const proxies = [
+                (url) => `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`,
+                (url) => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`,
+                (url) => `https://corsproxy.io/?${encodeURIComponent(url)}`
+            ];
+
+            async function fetchRSS() {
+                for (const getProxyUrl of proxies) {
+                    try {
+                        const proxyUrl = getProxyUrl(rssUrl);
+                        const response = await fetch(proxyUrl);
+                        
+                        if (!response.ok) continue;
+                        
+                        let xmlText = '';
+                        
+                        // allorigins מחזיר JSON עם שדה contents
+                        if (proxyUrl.includes('allorigins')) {
+                            const data = await response.json();
+                            xmlText = data.contents;
+                        } else {
+                            xmlText = await response.text();
+                        }
+
+                        if (!xmlText || !xmlText.includes('<rss')) continue;
+
+                        return xmlText;
+                    } catch (error) {
+                        console.warn('Proxy failed, trying next...', error);
+                    }
+                }
+                throw new Error('כל הניסיונות למשוך את הנתונים נכשלו.');
+            }
+
+            async function loadMitzvah() {
+                const contentEl = document.getElementById('widgetContent');
+                const dateEl = document.getElementById('widgetDate');
+                const footerEl = document.getElementById('widgetFooter');
+                const linkEl = document.getElementById('readMoreLink');
+
+                try {
+                    const xmlText = await fetchRSS();
+                    
+                    // המרת הטקסט ל-XML DOM
+                    const parser = new DOMParser();
+                    const xmlDoc = parser.parseFromString(xmlText, "text/xml");
+                    
+                    // שליפת הפריט הראשון (השיעור של היום)
+                    const items = xmlDoc.querySelectorAll("item");
+                    if (items.length === 0) throw new Error('לא נמצאו שיעורים בפיד.');
+                    
+                    const todayItem = items[0];
+                    
+                    // חילוץ הנתונים
+                    const title = todayItem.querySelector("title")?.textContent || 'שיעור יומי';
+                    let description = todayItem.querySelector("description")?.textContent || 'אין תוכן זמין.';
+                    const link = todayItem.querySelector("link")?.textContent || '#';
+                    const pubDate = todayItem.querySelector("pubDate")?.textContent;
+                    
+                    // עיצוב התאריך (אופציונלי)
+                    if (pubDate) {
+                        const dateObj = new Date(pubDate);
+                        dateEl.textContent = dateObj.toLocaleDateString('he-IL', { 
+                            weekday: 'long', 
+                            year: 'numeric', 
+                            month: 'long', 
+                            day: 'numeric' 
+                        });
+                    } else {
+                        dateEl.textContent = 'השיעור היומי';
+                    }
+
+                    // ניקוי תגיות מיותרות מהתיאור (אם חב"ד מכניסים תמונות או סקריפטים ל-RSS)
+                    // כאן אנחנו פשוט מציגים את ה-HTML כפי שהוא, אבל אפשר לסנן במידת הצורך
+                    
+                    // עדכון ה-DOM
+                    contentEl.innerHTML = `
+                        <div class="mitzvah-title">${title}</div>
+                        <div class="mitzvah-description">${description}</div>
+                    `;
+                    
+                    linkEl.href = link;
+                    footerEl.style.display = 'block';
+
+                } catch (error) {
+                    console.error('Error loading Mitzvah:', error);
+                    contentEl.innerHTML = `
+                        <div class="error">
+                            <svg style="width:40px;height:40px;margin-bottom:10px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg><br>
+                            שגיאה בטעינת השיעור היומי.<br>
+                            אנא נסה שוב מאוחר יותר.
+                        </div>
+                    `;
+                    dateEl.textContent = 'שגיאה';
+                }
+            }
+
+            // הפעלת הפונקציה בעת טעינת העמוד
+            loadMitzvah();
+        });
+    </script>
+<input type='hidden' name='ntsp_block_page' value='https://mobile.netsparkmobile.com/?a=block/block1&level=-30&url=http%3A%2F%2Faistudio.google.com%2F_%2Fupload%2Fff263713-6a61-4c65-937e-910e8ec018fb%2Ffile%2Fe823dd78134580b7da202d885633919e9e481a0783c917a9c38724457b399583&user_id=1481521&sigid=dd2df9eee35452c9165664b647254d447bee9bdaab4ee22437484c241bf2d8de&startm=0&keyword=&referer=https%3A%2F%2Faistudio.google.com%2F&category=77&cause=Quiltingjs'/><input type='hidden' name='ntsp_is_etrog' value='0'/><input type='hidden' name='ntsp_url_category' value='77'/><input type='hidden' name='ntsp_quilting' value='3'/><input type='hidden' name='ntsp_media_level' value='-30'/><input type='hidden' name='ntsp_user_level' value='-30'/><input type='hidden' name='ntsp_url_level' value='40'/><input type='hidden' name='ntsp_block_wa_status' value='0'/><script src='/jsQuilting/server/jsDict_utf8.js?v=1&k=23898278c1850f536d688db3614128a0' type='text/javascript' defer></script></body>
+</html>

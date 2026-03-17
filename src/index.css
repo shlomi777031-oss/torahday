@@ -1,0 +1,125 @@
+@import url('https://fonts.googleapis.com/css2?family=Assistant:wght@200;300;400;500;600;700;800&family=Frank+Ruhl+Libre:wght@300;400;500;700;900&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Assistant", ui-sans-serif, system-ui, sans-serif;
+  --font-serif: "Frank Ruhl Libre", ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
+  
+  --color-luxury-bg: #fdfcf9;
+  --color-luxury-surface: #ffffff;
+  --color-luxury-ink: #1c1c1c;
+  --color-luxury-gold: #b8860b;
+  --color-luxury-gold-light: #f9f4e8;
+  --color-luxury-border: #e5d5b0;
+  
+  --leading-sacred: 1.8;
+}
+
+@media print {
+  .print\:hidden {
+    display: none !important;
+  }
+  
+  body {
+    background: white !important;
+    color: black !important;
+  }
+  
+  .max-w-6xl {
+    max-width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+  
+  .bg-white, .bg-black, .bg-\[var\(--color-luxury-bg\)\] {
+    background: transparent !important;
+  }
+  
+  .text-\[var\(--color-luxury-ink\)\], .text-\[var\(--color-luxury-gold\)\] {
+    color: black !important;
+  }
+  
+  .shadow-sm, .shadow-md, .shadow-lg, .shadow-xl, .shadow-2xl {
+    box-shadow: none !important;
+  }
+  
+  .border, .border-b, .border-t, .border-r, .border-l {
+    border-color: #eee !important;
+  }
+}
+
+.dark {
+  --color-luxury-bg: #0a0a0a;
+  --color-luxury-surface: #141414;
+  --color-luxury-ink: #e0e0e0;
+  --color-luxury-gold: #d4af37;
+  --color-luxury-gold-light: #1a1608;
+  --color-luxury-border: #332d1c;
+}
+
+.night-vision {
+  --color-luxury-bg: #000800;
+  --color-luxury-surface: #001000;
+  --color-luxury-ink: #00ff00;
+  --color-luxury-gold: #00cc00;
+  --color-luxury-gold-light: #001a00;
+  --color-luxury-border: #004400;
+  filter: sepia(100%) hue-rotate(60deg) brightness(0.8) contrast(1.2);
+}
+
+.night-vision img {
+  filter: grayscale(100%) brightness(0.5) contrast(2);
+}
+
+html, body {
+  background-color: var(--color-luxury-bg);
+  color: var(--color-luxury-ink);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.font-serif {
+  font-optical-sizing: none;
+  font-weight: 400;
+  letter-spacing: 0;
+  font-variant-ligatures: none;
+  font-feature-settings: "liga" 0, "clig" 0, "calt" 0, "kern" 1;
+  text-rendering: optimizeLegibility;
+}
+
+.font-serif b, .font-serif strong {
+  font-weight: 700;
+}
+
+.font-serif i, .font-serif em {
+  font-style: normal; /* Hebrew italics often look inconsistent */
+}
+
+/* Ensure bold weight is also uniform */
+.font-serif.font-bold, .font-serif .font-bold {
+  font-weight: 700;
+  font-feature-settings: "liga" 0, "clig" 0, "calt" 0, "kern" 1;
+}
+
+.markdown-body p {
+  margin-bottom: 0.75rem;
+}
+
+.markdown-body p:last-child {
+  margin-bottom: 0;
+}
+
+.markdown-body ul, .markdown-body ol {
+  margin-bottom: 0.75rem;
+  padding-right: 1.25rem;
+  list-style-type: disc;
+}
+
+.markdown-body li {
+  margin-bottom: 0.25rem;
+}
+
+.markdown-body strong, .markdown-body b {
+  color: var(--color-luxury-gold);
+}
